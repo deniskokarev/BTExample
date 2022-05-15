@@ -27,8 +27,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:onClick="onScanButton"
+            android:onClick="onStartScanButton"
             android:text="Scan BLE" />
+
+        <Button
+            android:id="@+id/stopButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:onClick="onStopScanButton"
+            android:text="Stop BLE" />
 
     </LinearLayout>
 </androidx.wear.widget.BoxInsetLayout>

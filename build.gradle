@@ -18,7 +18,7 @@ ext {
     minSdkVersion = 29
     targetSdkVersion = 31
     compileSdkVersion = 31
-    buildToolsVersion = '29.0.3'
+    buildToolsVersion = '30.0.3'
 
     androidx_appCompatVersion = '1.1.0'
     androidx_fragmentVersion = '1.2.5'
