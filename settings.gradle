@@ -13,4 +13,8 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "BTExample"
-include ':app'
+
+include ':app',
+        ':BlueSTSDK'
+
+project(':BlueSTSDK').projectDir = new File('BlueSTSDK_Android/BlueSTSDK')
