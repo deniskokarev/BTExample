@@ -36,7 +36,8 @@ class MainActivity : Activity() {
         if (nodes.isEmpty()) {
             gotoConnecting()
         } else {
-            binding.output.text = "found ${nodes.size} nodes"
+            val n : Node = nodes[0]
+            binding.output.text = "Name: ${n.friendlyName}"
         }
     }
 
