@@ -23,15 +23,33 @@ class MainActivity : Activity() {
         setContentView(binding.root)
     }
 
+    private val mNodeStateListener = Node.NodeStateListener() {
+            _, state, _ ->
+        when (state) {
+            Node.State.Connected -> Unit
+            else -> gotoConnecting()
+        }
+    }
+
+    private var mNode: Node? = null
+
     override fun onResume() {
         super.onResume()
         val nodes = mManager.nodes
-        if (nodes.isEmpty()) {
+        if (nodes.isEmpty() || !nodes[0].isConnected) {
+            mNode = null
             gotoConnecting()
         } else {
-            val n : Node = nodes[0]
+            val n = nodes[0]
+            mNode = n
+            n.addNodeStateListener(mNodeStateListener)
             binding.output.text = "${n.friendlyName}: ${n.isConnected}"
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        mNode?.removeNodeStateListener(mNodeStateListener)
     }
 
     private fun gotoConnecting() {
