@@ -21,11 +21,11 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault">
         <activity
-            android:name=".ConnectionError"
+            android:name=".ConnectionErrorActivity"
             android:exported="false"
             android:noHistory="true" />
         <activity
-            android:name=".Connecting"
+            android:name=".ConnectingActivity"
             android:exported="false"
             android:noHistory="true" />
 

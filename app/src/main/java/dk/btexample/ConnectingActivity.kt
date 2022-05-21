@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import androidx.annotation.RequiresPermission
@@ -13,7 +12,7 @@ import com.st.BlueSTSDK.Manager
 import com.st.BlueSTSDK.Node
 import com.st.BlueSTSDK.Utils.advertise.AdvertiseFilter
 
-class Connecting : Activity(), Manager.ManagerListener {
+class ConnectingActivity : Activity(), Manager.ManagerListener {
     private val TAG = this::class.simpleName
     private val REQUEST_BT_PERMISSIONS = 1
     private val permissions = arrayOf(
@@ -113,6 +112,23 @@ class Connecting : Activity(), Manager.ManagerListener {
         connectAndGotoMainOrError()
     }
 
+    // has to be object to use `this` reference
+    private val mNodeStateListener = object : Node.NodeStateListener {
+        override fun onStateChange(node: Node, state: Node.State, prevState: Node.State) {
+            when (state) {
+                Node.State.Connected -> {
+                    node.removeNodeStateListener(this)
+                    gotoMain()
+                }
+                Node.State.Dead, Node.State.Lost, Node.State.Unreachable -> {
+                    node.removeNodeStateListener(this)
+                    gotoConnectionError()
+                }
+                else -> Unit
+            }
+        }
+    }
+
     private fun connectAndGotoMainOrError() {
         if (mManager.nodes.isEmpty()) {
             gotoConnectionError()
@@ -121,12 +137,7 @@ class Connecting : Activity(), Manager.ManagerListener {
             if (node.isConnected) {
                 gotoMain()
             } else {
-                node.addNodeStateListener { _, state, _ ->
-                    when (state) {
-                        Node.State.Connected -> gotoMain()
-                        Node.State.Dead, Node.State.Lost, Node.State.Unreachable -> gotoConnectionError()
-                    }
-                }
+                node.addNodeStateListener(mNodeStateListener)
                 node.connect(applicationContext)
             }
         }
@@ -139,7 +150,7 @@ class Connecting : Activity(), Manager.ManagerListener {
     }
 
     private fun gotoConnectionError() {
-        val intent = Intent(this, ConnectionError::class.java)
+        val intent = Intent(this, ConnectionErrorActivity::class.java)
         startActivity(intent)
         finish()
     }
