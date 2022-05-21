@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import com.st.BlueSTSDK.Manager
@@ -47,7 +46,7 @@ class Connecting : Activity(), Manager.ManagerListener {
             }
             setContentView(R.layout.activity_connecting)
         } else {
-            gotoMain()
+            connectAndGotoMainOrError()
         }
     }
 
@@ -104,14 +103,33 @@ class Connecting : Activity(), Manager.ManagerListener {
             if (nodes.isEmpty()) {
                 gotoConnectionError()
             } else {
-                gotoMain()
+                connectAndGotoMainOrError()
             }
         }
     }
 
     override fun onNodeDiscovered(m: Manager, node: Node) {
         Log.i(TAG, "Discovered Node = $node")
-        gotoMain()
+        connectAndGotoMainOrError()
+    }
+
+    private fun connectAndGotoMainOrError() {
+        if (mManager.nodes.isEmpty()) {
+            gotoConnectionError()
+        } else {
+            val node = mManager.nodes[0]
+            if (node.isConnected) {
+                gotoMain()
+            } else {
+                node.addNodeStateListener { _, state, _ ->
+                    when (state) {
+                        Node.State.Connected -> gotoMain()
+                        Node.State.Dead, Node.State.Lost, Node.State.Unreachable -> gotoConnectionError()
+                    }
+                }
+                node.connect(applicationContext)
+            }
+        }
     }
 
     private fun gotoMain() {
