@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import android.widget.TextView
 import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import com.st.BlueSTSDK.Manager
@@ -21,11 +22,15 @@ class ConnectingActivity : Activity(), Manager.ManagerListener {
         Manifest.permission.BLUETOOTH_ADMIN
     )
     private lateinit var mManager: Manager
+    private lateinit var statusText: TextView
+
+    private val errNoPermissions =  "BLE Scanning Permissions Not Granted"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mManager = Manager.getSharedInstance()
         setContentView(R.layout.activity_connecting)
+        statusText = findViewById(R.id.statusText)
     }
 
     override fun onResume() {
@@ -37,13 +42,11 @@ class ConnectingActivity : Activity(), Manager.ManagerListener {
                     permissions,
                     REQUEST_BT_PERMISSIONS
                 )
-                Log.d(TAG, "BT Permissions not granted")
-                // TODO set error message
-                gotoConnectionError()
+                Log.d(TAG, errNoPermissions)
+                gotoConnectionErrorActivity(errNoPermissions)
             } else {
                 startDiscovery()
             }
-            setContentView(R.layout.activity_connecting)
         } else {
             connectAndGotoMainOrError()
         }
@@ -56,6 +59,7 @@ class ConnectingActivity : Activity(), Manager.ManagerListener {
 
     @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN])
     private fun startDiscovery() {
+        statusText.text = "Scanning for BlueNRG devices"
         mManager.addListener(this)
         mManager.startDiscovery(3_000, buildAdvertiseFilter())
     }
@@ -91,6 +95,7 @@ class ConnectingActivity : Activity(), Manager.ManagerListener {
                 startDiscovery()
             } else {
                 Log.e(TAG, "User doesn't allow scanning BLE devices")
+                gotoConnectionErrorActivity(errNoPermissions)
             }
         }
     }
@@ -100,7 +105,7 @@ class ConnectingActivity : Activity(), Manager.ManagerListener {
         if (!enabled) {
             val nodes = mManager.nodes
             if (nodes.isEmpty()) {
-                gotoConnectionError()
+                gotoConnectionErrorActivity("No BlueNRG devices around")
             } else {
                 connectAndGotoMainOrError()
             }
@@ -112,17 +117,16 @@ class ConnectingActivity : Activity(), Manager.ManagerListener {
         connectAndGotoMainOrError()
     }
 
-    // has to be object to use `this` reference
     private val mNodeStateListener = object : Node.NodeStateListener {
         override fun onStateChange(node: Node, state: Node.State, prevState: Node.State) {
             when (state) {
                 Node.State.Connected -> {
                     node.removeNodeStateListener(this)
-                    gotoMain()
+                    gotoMainActivity()
                 }
                 Node.State.Dead, Node.State.Lost, Node.State.Unreachable -> {
                     node.removeNodeStateListener(this)
-                    gotoConnectionError()
+                    gotoConnectionErrorActivity("Device state became $state")
                 }
                 else -> Unit
             }
@@ -131,27 +135,27 @@ class ConnectingActivity : Activity(), Manager.ManagerListener {
 
     private fun connectAndGotoMainOrError() {
         if (mManager.nodes.isEmpty()) {
-            gotoConnectionError()
+            gotoConnectionErrorActivity("No BlueNRG devices around")
         } else {
             val node = mManager.nodes[0]
             if (node.isConnected) {
-                gotoMain()
+                gotoMainActivity()
             } else {
+                runOnUiThread { statusText.text = "Connecting to ${node.friendlyName}" }
                 node.addNodeStateListener(mNodeStateListener)
                 node.connect(applicationContext)
             }
         }
     }
 
-    private fun gotoMain() {
+    private fun gotoMainActivity() {
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
         finish()
     }
 
-    private fun gotoConnectionError() {
-        val intent = Intent(this, ConnectionErrorActivity::class.java)
-        startActivity(intent)
+    private fun gotoConnectionErrorActivity(error: String) {
+        ConnectionErrorActivity.open(this, error)
         finish()
     }
 }

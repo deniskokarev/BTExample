@@ -30,8 +30,9 @@ class MainActivity : Activity() {
             Node.State.Lost, Node.State.Dead, Node.State.Unreachable -> {
                 Log.w(TAG, "Connection state changed to ${state}, proceeding to Connecting screen")
                 // will invoke onPause(), which removes listeners
-                gotoConnecting()
+                gotoConnectingActivity()
             }
+            else -> Unit
         }
     }
 
@@ -67,7 +68,7 @@ class MainActivity : Activity() {
         val nodes = mManager.nodes
         if (nodes.isEmpty() || !nodes[0].isConnected) {
             mNode = null
-            gotoConnecting()
+            gotoConnectingActivity()
         } else {
             // need to add Node state and Feature listeners
             val n = nodes[0]
@@ -96,7 +97,7 @@ class MainActivity : Activity() {
         removeListeners()
     }
 
-    private fun gotoConnecting() {
+    private fun gotoConnectingActivity() {
         val intent = Intent(this, ConnectingActivity::class.java)
         startActivity(intent)
         finish()
