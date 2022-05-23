@@ -44,7 +44,7 @@ class MainActivity : Activity() {
         FeatureListener { f, sample ->
             val pressureFeature = f as FeaturePressure
             val data = (FeaturePressure::getPressure)(sample)
-            val text = "%.02f cpm".format(data)
+            val text = "%.01f cpm".format(data)
             runOnUiThread { binding.output.text = text }
         }
 
@@ -55,7 +55,7 @@ class MainActivity : Activity() {
         if (sample != null) {
             mPressureListener.onUpdate(feature, sample)
         } else {
-            binding.output.text = "waiting for update"
+            binding.output.text = "updating"
         }
         val rc = n.enableNotification(feature)
         Log.d(TAG, "enableNotification() = $rc")
