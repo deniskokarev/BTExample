@@ -43,9 +43,8 @@ class MainActivity : Activity() {
     private val mPressureListener =
         FeatureListener { f, sample ->
             val pressureFeature = f as FeaturePressure
-            val unit = pressureFeature.fieldsDesc[0].unit
             val data = (FeaturePressure::getPressure)(sample)
-            val text = "%06.0f %s".format(data, unit)
+            val text = "%.02f cpm".format(data)
             runOnUiThread { binding.output.text = text }
         }
 
